@@ -1,8 +1,8 @@
 Install dependencies
-###yarn install
+### yarn install
 Run project:
-###yarn start
+### yarn start
 
 Firebase deployment:
-###yarn build
+### yarn build
 ### firebase deploy
