@@ -1,26 +1,45 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+// @ts-ignore
+import  EthrDID from 'ethr-did'
+import Web3 from 'web3'
 
-function App() {
+import { createVerifiableCredentialJwt } from 'did-jwt-vc'
+
+
+export const App =  () => {
+  const [vc, setVc] = React.useState("");
+
+  const issuer = new EthrDID({
+    address: '0xf1232f840f3ad7d23fcdaa84d6c66dac24efb198',
+    privateKey: 'd8b595680851765f38ea5405129244ba3cbad84467d190859f4c8b20c1ff6c75'
+  });
+
+  const vcPayload = {
+    sub: 'did:ethr:0x435df3eda57154cf8cf7926079881f2912f54db4',
+    nbf: Math.floor(Date.now() / 1000),
+    vc: {
+      '@context': ['https://www.w3.org/2018/credentials/v1'],
+      type: ['VerifiableCredential'],
+      credentialSubject: {
+        degree: {
+          type: 'BachelorDegree',
+          name: 'Baccalauréat en musiques numériques'
+        }
+      }
+    }
+  };
+  const issueVCS = async () => {
+      const response = await createVerifiableCredentialJwt(vcPayload, issuer);
+      setVc(response);
+    };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Verifiable Credentials</h1>
+      <button onClick={issueVCS}>Issue VC's</button>
+      <p>{ vc }</p>
     </div>
   );
-}
+};
 
 export default App;
