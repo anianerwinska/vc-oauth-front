@@ -6,8 +6,7 @@ import Web3 from 'web3'
 
 import { createVerifiableCredentialJwt } from 'did-jwt-vc'
 
-
-export const App =  () => {
+export const IssueVC =  () => {
   const [vc, setVc] = React.useState("");
 
   const issuer = new EthrDID({
@@ -30,15 +29,21 @@ export const App =  () => {
     }
   };
   const issueVCS = async () => {
-      const response = await createVerifiableCredentialJwt(vcPayload, issuer);
-      setVc(response);
-    };
+    const response = await createVerifiableCredentialJwt(vcPayload, issuer);
+    setVc(response);
+  };
   return (
     <div>
       <h1>Verifiable Credentials</h1>
       <button onClick={issueVCS}>Issue VC's</button>
       <p>{ vc }</p>
     </div>
+  );
+};
+
+export const App =  () => {
+  return (
+   <IssueVC/>
   );
 };
 
