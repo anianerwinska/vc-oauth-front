@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import {VcFlow} from './views/CreateWallet';
+import {VcFlow} from './views/VcFlow';
 
 
 export const App =  () => {
