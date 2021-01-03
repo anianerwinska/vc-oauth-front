@@ -32,14 +32,9 @@ export const VcFlow = () => {
   const [ethrIssuerAddr, setEthIssuerAddr] = useState("");
   const [ethrIssuerKey, setEthrIssuerKey] = useState("");
   const [ethrHolderDID, setEthHolderDID] = useState("");
-  const [vc, setVc] = useState("No VC's set");
+  const [vc, setVc] = useState("Brak weryfikowalnych poświadczeń");
   const [vp, setVp] = useState("No VP's set");
-  //
-  // const { register, handleSubmit } = useForm({
-  //   defaultValues: {
-  //     password: '',
-  //   }
-  // });
+
   const createIssuerAccount = async (password) => {
     const account  = await web3.eth.accounts.create();
     setEthIssuerAddr(account.address);
@@ -76,7 +71,6 @@ export const VcFlow = () => {
     });
     const response = await createVerifiableCredentialJwt(vcPayload, issuer);
     setVc(response);
-
   };
 
   const createVp = async () => {
@@ -94,9 +88,7 @@ export const VcFlow = () => {
     const vpJwt = await createVerifiablePresentationJwt(vpPayload, issuer)
     setVp(vpJwt)
   }
-  // const onSubmit = useCallback(({ password }) => {
-  //   createAccount(password);
-  // }, [createAccount]);
+
   const verifyVC = async () => {
     const verifiedVC = await verifyCredential(vc, resolver)
     console.log(verifiedVC)
@@ -147,7 +139,6 @@ export const VcFlow = () => {
     switch (step) {
       case 0:
         return <button onClick={createIssuerAccount} > Utwórz portfel Issuera</button>
-
       case 1:
         return <button onClick={createHoldersAccount} >Utwórz DID Holdera</button>;
       case 2:
@@ -160,9 +151,10 @@ export const VcFlow = () => {
   }
 
   return (
-    <Container maxWidth="lg">
-      <div className='vc-flow'>
-        <Stepper activeStep={activeStep} orientation="horizontal">
+    <Container maxWidth="md" >
+      <Grid container spacing={4} direction="row" >
+        <Grid lg={6}>
+        <Stepper activeStep={activeStep} orientation="vertical">
           {steps.map((label, index) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -199,8 +191,9 @@ export const VcFlow = () => {
             </Button>
           </Paper>
         )}
-      </div>
-      <div>
+        </Grid>
+        <Grid md={6}>
+
         <Typography variant="h6" component="h2" gutterBottom>
           Adres Issuera:
         </Typography>
@@ -222,12 +215,13 @@ export const VcFlow = () => {
         <Typography variant="h6" component="h2" gutterBottom>
           Weryfikowalne poświadczenie w postaci JWT:
         </Typography>
-        <Typography nowrap variant="subtitle1"  style={{ wordWrap: "break-word" }}>
+        <Typography variant="subtitle1"  style={{ wordWrap: "break-word" }}>
           { vc }
 
         </Typography>
-      </div>
-    </Container>
+        </Grid>
+      </Grid>
+      </Container>
 
   );
 };

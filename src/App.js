@@ -4,7 +4,6 @@ import {VcFlow} from './views/VcFlow';
 import Typography from '@material-ui/core/Typography';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
-import IconButton from '@material-ui/core/IconButton';
 
 
 export const App =  () => {
@@ -12,8 +11,6 @@ export const App =  () => {
     <Fragment>
     <AppBar position="static">
       <Toolbar>
-        <IconButton edge="start" color="red" aria-label="menu">
-        </IconButton>
         <Typography variant="h6">
           Przepływ wystawiania weryfikowalnych poświadczeń
         </Typography>
