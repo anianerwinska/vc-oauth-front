@@ -1,6 +1,6 @@
-import React, {useCallback, useState} from 'react';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
-import { Grid, Button, Container, Accordion, AccordionSummary, Typography, AccordionDetails, TextField } from '@material-ui/core'
+import React, { useState } from 'react';
+import Confetti from 'react-dom-confetti';
+import { Grid, Button, Container, Typography, TextField } from '@material-ui/core'
 import EthrDID from 'ethr-did';
 import {
   createVerifiableCredentialJwt,
@@ -33,7 +33,12 @@ export const VcFlow = () => {
   const [ethrIssuerKey, setEthrIssuerKey] = useState("");
   const [ethrHolderDID, setEthHolderDID] = useState("");
   const [vc, setVc] = useState("Brak weryfikowalnych poświadczeń");
-  const [vp, setVp] = useState("No VP's set");
+  const [vp, setVp] = useState("Brak weryfikowalnych prezentacji");
+  const [vcType, setVcType] = useState("");
+  const [vcName, setVcName] = useState("");
+  const [vcCorrect, setVcCorrect] = useState(false);
+
+
 
   const createIssuerAccount = async (password) => {
     const account  = await web3.eth.accounts.create();
@@ -56,11 +61,9 @@ export const VcFlow = () => {
       '@context': ['https://www.w3.org/2018/credentials/v1'],
       type: ['VerifiableCredential'],
       credentialSubject: {
-        degree: {
-          type: 'BachelorDegree',
-          name: 'Baccalauréat en musiques numériques'
+        type: vcType,
+        name: vcName
         }
-      }
     }
   };
 
@@ -88,10 +91,30 @@ export const VcFlow = () => {
     const vpJwt = await createVerifiablePresentationJwt(vpPayload, issuer)
     setVp(vpJwt)
   }
+  const config = {
+    angle: "210",
+    spread: 360,
+    startVelocity: "29",
+    elementCount: "86",
+    dragFriction: "0.01",
+    duration: 3000,
+    stagger: "17",
+    width: "36px",
+    height: "34px",
+    perspective: "356px",
+    colors: ["#a864fd", "#29cdff", "#78ff44", "#ff718d", "#fdff6a"]
+  };
 
   const verifyVC = async () => {
-    const verifiedVC = await verifyCredential(vc, resolver)
-    console.log(verifiedVC)
+    try {
+      const verifiedVC = await verifyCredential(vc, resolver);
+      console.log("yay!")
+      setVcCorrect(true)
+      alert("Poświadczenie poprawne");
+    }
+    catch(e) {
+      alert("Wystąpił błąd, poświadczenie niepoprawne");
+    }
   };
   const verifyVP = async () => {
     const verifiedVC = await verifyPresentation(vp, resolver)
@@ -135,6 +158,39 @@ export const VcFlow = () => {
     return ['Utwórz portfel Issuera', 'Utwórz DID Holdera', 'Wygeneruj weryfikowalne poświadczenie', 'Zweryfikuj poprawność'];
   }
 
+  const vcIssueStep = () => {
+
+    return (
+      <Container maxWidth="md" >
+        <Typography variant="body1"  gutterBottom>
+          Podaj parametry weryfikowalnego poświadczenia: jego typ (np. degree) oraz nazwa np. (dyplom ukończenia studiow)
+        </Typography>
+        <br/>
+        <Grid container spacing={3} direction="column" >
+        <TextField
+          type="text"
+          label="Typ"
+          value={vcType}
+          onChange={e => setVcType(e.target.value)}
+        />
+        <br/>
+      <TextField
+        type="text"
+        label="Nazwa"
+        value={vcName}
+        onChange={e => setVcName(e.target.value)}
+      />
+          <br/>
+
+          <button onClick={issueVCS} >Wygeneruj weryfikowalne poświadczenie</button>
+        <br/>
+          <br/>
+
+        </Grid>
+
+      </Container>
+    )
+  }
   function getStepContent(step) {
     switch (step) {
       case 0:
@@ -142,9 +198,9 @@ export const VcFlow = () => {
       case 1:
         return <button onClick={createHoldersAccount} >Utwórz DID Holdera</button>;
       case 2:
-        return <button onClick={issueVCS} >Wygeneruj weryfikowalne poświadczenie</button>
+        return vcIssueStep();
       case 3:
-        return  <button onClick={verifyVC} >Zweryfikuj poprawność</button>
+        return  <button onClick={verifyVC} > Zweryfikuj poprawność </button>
       default:
         return 'Unknown step';
     }
@@ -194,31 +250,37 @@ export const VcFlow = () => {
         </Grid>
         <Grid md={6}>
 
-        <Typography variant="h6" component="h2" gutterBottom>
+        <Typography variant="button" component="h2" gutterBottom>
           Adres Issuera:
         </Typography>
           <Typography variant="subtitle1" component="h2" gutterBottom>
           <p> { ethrIssuerAddr }</p>
       </Typography>
-        <Typography variant="h6" component="h2" gutterBottom>
+        <Typography variant="button" component="h2" gutterBottom>
           Klucz prywatny Issuera:
         </Typography>
         <Typography variant="subtitle1" component="h2" gutterBottom>
           <p> { ethrIssuerKey }</p>
         </Typography>
-        <Typography variant="h6" component="h2" gutterBottom>
+        <Typography variant="button" component="h2" gutterBottom>
           DID Holdera:
         </Typography>
         <Typography variant="subtitle1" component="h2" gutterBottom>
           <p> { ethrHolderDID }</p>
         </Typography>
-        <Typography variant="h6" component="h2" gutterBottom>
+        <Typography variant="button" component="h2" gutterBottom>
+            Weryfikowalne poświadczenie:
+          </Typography>
+          <Typography variant="subtitle1"  style={{ wordWrap: "break-word" }}>
+            <pre> { JSON.stringify(vcPayload,  null, 2) } </pre>
+          </Typography>
+          <Typography variant="button" component="h2" gutterBottom>
           Weryfikowalne poświadczenie w postaci JWT:
         </Typography>
         <Typography variant="subtitle1"  style={{ wordWrap: "break-word" }}>
           { vc }
-
         </Typography>
+          <Confetti active={vcCorrect} config={config}/>
         </Grid>
       </Grid>
       </Container>
