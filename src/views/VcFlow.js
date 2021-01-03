@@ -10,6 +10,12 @@ import {
 } from 'did-jwt-vc';
 import { Resolver } from 'did-resolver'
 import { getResolver } from 'ethr-did-resolver'
+import {makeStyles} from '@material-ui/core/styles';
+import Stepper from '@material-ui/core/Stepper';
+import Step from '@material-ui/core/Step';
+import StepLabel from '@material-ui/core/StepLabel';
+import StepContent from '@material-ui/core/StepContent';
+import Paper from '@material-ui/core/Paper';
 
 const testProvider = 'wss://mainnet.infura.io/ws/v3/9ed93dd5e0e841eba23c4e28dbabaf93';
 const testProviderApi = 'https://mainnet.infura.io/v3/9ed93dd5e0e841eba23c4e28dbabaf93';
@@ -38,6 +44,7 @@ export const VcFlow = () => {
     const account  = await web3.eth.accounts.create();
     setEthIssuerAddr(account.address);
     setEthrIssuerKey(account.privateKey)
+    return ethrIssuerAddr
   };
 
   const createHoldersAccount = async (password) => {
@@ -98,24 +105,129 @@ export const VcFlow = () => {
     const verifiedVC = await verifyPresentation(vp, resolver)
     console.log(verifiedVC)
   };
+
+  const [activeStep, setActiveStep] = React.useState(0);
+  const steps = getSteps();
+
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  const handleReset = () => {
+    setActiveStep(0);
+  };
+
+  const useStyles = makeStyles((theme) => ({
+    root: {
+      width: '100%',
+    },
+    button: {
+      marginTop: theme.spacing(1),
+      marginRight: theme.spacing(1),
+    },
+    actionsContainer: {
+      marginBottom: theme.spacing(2),
+    },
+    resetContainer: {
+      padding: theme.spacing(3),
+    },
+  }));
+
+  const classes = useStyles();
+
+  function getSteps() {
+    return ['Utwórz portfel Issuera', 'Utwórz DID Holdera', 'Wygeneruj weryfikowalne poświadczenie', 'Zweryfikuj poprawność'];
+  }
+
+  function getStepContent(step) {
+    switch (step) {
+      case 0:
+        return <button onClick={createIssuerAccount} > Utwórz portfel Issuera</button>
+
+      case 1:
+        return <button onClick={createHoldersAccount} >Utwórz DID Holdera</button>;
+      case 2:
+        return <button onClick={issueVCS} >Wygeneruj weryfikowalne poświadczenie</button>
+      case 3:
+        return  <button onClick={verifyVC} >Zweryfikuj poprawność</button>
+      default:
+        return 'Unknown step';
+    }
+  }
+
   return (
+    <Container maxWidth="lg">
+      <div className='vc-flow'>
+        <Stepper activeStep={activeStep} orientation="horizontal">
+          {steps.map((label, index) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+              <StepContent>
+                <Typography>{getStepContent(index)}</Typography>
+                <div className={classes.actionsContainer}>
+                  <div>
+                    <Button
+                      disabled={activeStep === 0}
+                      onClick={handleBack}
+                      className={classes.button}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleNext}
+                      className={classes.button}
+                    >
+                      {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+                    </Button>
+                  </div>
+                </div>
+              </StepContent>
+            </Step>
+          ))}
+        </Stepper>
+        {activeStep === steps.length && (
+          <Paper square elevation={0} className={classes.resetContainer}>
+            <Typography>Wszystkie kroki zostały wykonane</Typography>
+            <Button onClick={handleReset} className={classes.button}>
+              Reset
+            </Button>
+          </Paper>
+        )}
+      </div>
+      <div>
+        <Typography variant="h6" component="h2" gutterBottom>
+          Adres Issuera:
+        </Typography>
+          <Typography variant="subtitle1" component="h2" gutterBottom>
+          <p> { ethrIssuerAddr }</p>
+      </Typography>
+        <Typography variant="h6" component="h2" gutterBottom>
+          Klucz prywatny Issuera:
+        </Typography>
+        <Typography variant="subtitle1" component="h2" gutterBottom>
+          <p> { ethrIssuerKey }</p>
+        </Typography>
+        <Typography variant="h6" component="h2" gutterBottom>
+          DID Holdera:
+        </Typography>
+        <Typography variant="subtitle1" component="h2" gutterBottom>
+          <p> { ethrHolderDID }</p>
+        </Typography>
+        <Typography variant="h6" component="h2" gutterBottom>
+          Weryfikowalne poświadczenie w postaci JWT:
+        </Typography>
+        <Typography nowrap variant="subtitle1"  style={{ wordWrap: "break-word" }}>
+          { vc }
 
-    <div>
-      <h1>Verifiable Credentials sharing flow</h1>
+        </Typography>
+      </div>
+    </Container>
 
-      <button onClick={createIssuerAccount} >Create Issuer's Ethereum Account</button>
-      <p>{ ethrIssuerAddr }</p>
-      <p>{ ethrIssuerKey }</p>
-
-      <button onClick={createHoldersAccount} >Create Holder's Ethereum DID</button>
-      <p>{ ethrHolderDID }</p>
-      <button onClick={issueVCS} >Issue VC's</button>
-      <p>{ vc }</p>
-      <button onClick={createVp} >Create Vp's</button>
-
-      <p>{ vp }</p>
-      <button onClick={verifyVC} >Verify Vp's</button>
-
-    </div>
   );
 };
