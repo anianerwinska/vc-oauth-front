@@ -216,18 +216,19 @@ export const VcReceiptFlow = () => {
       console.log(extractResult)
       const decryptResult = holderInstance.decrypt(holderSetupToJson.publicParameters, extractResult.privateKey, receiptEncryptedToJson.ciphertext);
       console.log(decryptResult)
-      if (vcPayload.vc.credentialSubject.digitalReceiptAgree === true) {
-        alert("Poświadczenie poprawne");
-      }
-      else {
-        alert("Użytkownik nie wyraził zgody na otrzymywanie e-paragonow");
-
-      }
-      if (decryptResult.success) {
+      if (vcPayload.vc.credentialSubject.digitalReceiptAgree === true && decryptResult.success) {
         setVcCorrect(true);
         const asJSON = JSON.parse(decryptResult.plaintext)
         setDecryptedReceipt(JSON.stringify(asJSON, 2, " "))
+        alert("Poświadczenie poprawne");
       }
+      else if (vcPayload.vc.credentialSubject.digitalReceiptAgree === false) {
+        alert("Użytkownik nie wyraził zgody na otrzymywanie e-paragonow");
+      }
+      else {
+        alert("Poświadczenie niepoprawne");
+      }
+
 
     } catch (e) {
       console.log(e)
