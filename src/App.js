@@ -1,9 +1,10 @@
 import React, { Fragment } from 'react';
 import './App.css';
-import {VcFlow} from './views/VcFlow';
+// import {VcFlow} from './views/VcFlow';
 import Typography from '@material-ui/core/Typography';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
+import {VcReceiptFlow} from './views/VcReceiptFlow';
 
 
 export const App =  () => {
@@ -18,7 +19,7 @@ export const App =  () => {
     </AppBar>
       <br/>
       <br/>
-      <VcFlow/>
+      <VcReceiptFlow/>
 
     </Fragment>
   );
