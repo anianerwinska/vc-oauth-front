@@ -151,7 +151,7 @@ export const VcReceiptFlow = () => {
   const CryptID = require('@cryptid/cryptid-js');
 
 
-  const createIssuerAccount = async (password) => {
+  const createIssuerAccount = async () => {
     const account = await web3.eth.accounts.create();
     setEthIssuerAddr(account.address);
     setEthrIssuerKey(account.privateKey);
@@ -226,16 +226,16 @@ export const VcReceiptFlow = () => {
   };
 
   const config = {
-    angle: "210",
+    angle: 90,
     spread: 360,
-    startVelocity: "29",
-    elementCount: "86",
-    dragFriction: "0.01",
+    startVelocity: 40,
+    elementCount: 70,
+    dragFriction: 0.12,
     duration: 3000,
-    stagger: "17",
-    width: "36px",
-    height: "34px",
-    perspective: "356px",
+    stagger: 3,
+    width: "10px",
+    height: "10px",
+    perspective: "500px",
     colors: ["#a864fd", "#29cdff", "#78ff44", "#ff718d", "#fdff6a"]
   };
 
@@ -252,6 +252,21 @@ export const VcReceiptFlow = () => {
 
   const handleReset = () => {
     setActiveStep(0);
+    setEthIssuerAddr("");
+    setEthrIssuerKey("");
+    setHolderSetup("");
+    setReceiptEncrypted("");
+    setVcType("");
+    setVcName("");
+    setEthHolderDID("");
+    setDecryptedReceipt("");
+    setVcCorrect(false);
+    setVp("");
+    setVc("");
+    setHolderEmail("");
+    setHolderInstance("");
+    setIssuerSetup("");
+
   };
 
   const useStyles = makeStyles((theme) => ({
@@ -309,11 +324,11 @@ export const VcReceiptFlow = () => {
     return (
       <Container>
         <Typography variant="body1" gutterBottom>
-          Podaj parametry weryfikowalnego poświadczenia: jego typ (np. degree) oraz nazwa np. (dyplom ukończenia
+          Podaj parametry weryfikowalnego poświadczenia: <br/> jego typ (np. degree) oraz nazwa np. (dyplom ukończenia
           studiow)
         </Typography>
         <br/>
-        <Grid container direction="column">
+        <Grid direction="column">
           <TextField
             type="text"
             label="Typ"
@@ -328,11 +343,14 @@ export const VcReceiptFlow = () => {
             onChange={e => setVcName(e.target.value)}
           />
           <br/>
+          <br/>
 
           <button onClick={issueVCS}>Wygeneruj weryfikowalne poświadczenie</button>
 
           <Typography variant="button" component="h2" gutterBottom>
             Weryfikowalne poświadczenie:
+            <br/>
+
           </Typography>
           <Typography variant="subtitle1" style={{wordWrap: "break-word"}}>
             <pre> {JSON.stringify(vcPayload, null, 2)} </pre>
@@ -354,11 +372,14 @@ export const VcReceiptFlow = () => {
 
   const vcHolderStep = () => {
     return (
-      <Container maxWidth={'md'}>
+      <Container>
+        <Grid>
         <Typography variant="button" component="h2" gutterBottom>
           Podaj email holdera
         </Typography>
-        <Grid container spacing={3} direction="column">
+        </Grid>
+
+        <Grid direction="column">
           <TextField
             type="text"
             label="Email"
@@ -372,13 +393,15 @@ export const VcReceiptFlow = () => {
             DID Holdera:
           </Typography>
           <Typography variant="subtitle1" component="h2" gutterBottom>
-
             <p> {ethrHolderDID}</p>
           </Typography>
           <br/>
-          <Grid spacing={4}>
-
-          </Grid>
+          <Typography variant="button" component="h2" gutterBottom>
+            IBE Holdera:
+          </Typography>
+          <Typography variant="subtitle1" component="h2" gutterBottom>
+            <pre>  {holderSetup} </pre>
+          </Typography>
         </Grid>
       </Container>
     )
@@ -403,7 +426,6 @@ export const VcReceiptFlow = () => {
         <br/>
       </Container>
     )
-
   }
 
   function getStepContent(step) {
@@ -427,6 +449,8 @@ export const VcReceiptFlow = () => {
         return (
           <Container>
             <button onClick={verifyVC}> Zweryfikuj poprawność</button>
+            <Confetti active={vcCorrect} config={config}/>
+
             <Typography variant="button" component="h2" gutterBottom>
               Odszyfrowany paragon
             </Typography>
@@ -470,6 +494,7 @@ export const VcReceiptFlow = () => {
                 </StepContent>
               </Step>
             ))}
+
           </Stepper>
           {activeStep === steps.length && (
             <Paper square elevation={0} className={classes.resetContainer}>
@@ -479,10 +504,6 @@ export const VcReceiptFlow = () => {
               </Button>
             </Paper>
           )}
-        </Grid>
-        <Grid lg={12}>
-
-          <Confetti active={vcCorrect} config={config}/>
         </Grid>
       </Grid>
     </Container>
