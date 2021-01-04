@@ -16,6 +16,7 @@ import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import StepContent from '@material-ui/core/StepContent';
 import Paper from '@material-ui/core/Paper';
+import Checkbox from '@material-ui/core/Checkbox';
 
 const testProvider = 'wss://mainnet.infura.io/ws/v3/9ed93dd5e0e841eba23c4e28dbabaf93';
 const testProviderApi = 'https://mainnet.infura.io/v3/9ed93dd5e0e841eba23c4e28dbabaf93';
@@ -41,6 +42,7 @@ export const VcReceiptFlow = () => {
 
   const [holderEmail, setHolderEmail] = useState("");
   const [receiptEncrypted, setReceiptEncrypted] = useState("");
+  const [checked, setChecked] = useState(false);
 
   const [vcType, setVcType] = useState("");
   const [vcName, setVcName] = useState("");
@@ -144,7 +146,9 @@ export const VcReceiptFlow = () => {
       type: ['VerifiableCredential'],
       credentialSubject: {
         type: vcType,
-        name: vcName
+        name: vcName,
+        digitalReceiptAgree: checked
+
       }
     }
   };
@@ -212,7 +216,13 @@ export const VcReceiptFlow = () => {
       console.log(extractResult)
       const decryptResult = holderInstance.decrypt(holderSetupToJson.publicParameters, extractResult.privateKey, receiptEncryptedToJson.ciphertext);
       console.log(decryptResult)
-      alert("Poświadczenie poprawne");
+      if (vcPayload.vc.credentialSubject.digitalReceiptAgree === true) {
+        alert("Poświadczenie poprawne");
+      }
+      else {
+        alert("Użytkownik nie wyraził zgody na otrzymywanie e-paragonow");
+
+      }
       if (decryptResult.success) {
         setVcCorrect(true);
         const asJSON = JSON.parse(decryptResult.plaintext)
@@ -288,7 +298,7 @@ export const VcReceiptFlow = () => {
   const classes = useStyles();
 
   function getSteps() {
-    return ['Utwórz portfel Issuera', 'Utwórz DID Holdera', 'Wygeneruj weryfikowalne poświadczenie', 'Zaszyfruj paragon',
+    return ['Utwórz portfel Issuera', 'Utwórz DID Holdera', 'Zaszyfruj paragon', 'Wygeneruj weryfikowalne poświadczenie',
       'Wygeneruj weryfikowalną prezentacje', 'Zweryfikuj poprawność'];
   }
 
@@ -319,10 +329,24 @@ export const VcReceiptFlow = () => {
         </Typography>
       </Container>
     )
-  }
+  };
+  const handleCheckboxChange = (event) => {
+    setChecked(event.target.checked);
+  };
   const vcIssueStep = () => {
     return (
       <Container>
+        <Checkbox
+          checked={checked}
+          onChange={handleCheckboxChange}
+          color="primary"
+          inputProps={{ 'aria-label': 'primary checkbox' }}
+        />
+        Wyrażam zgodę nas otrzymywanie paragonu na powiązany identyfikator DID:
+        <p>{ethrHolderDID}</p>
+        <br/>
+
+
         <Typography variant="body1" gutterBottom>
           Podaj parametry weryfikowalnego poświadczenia: <br/> jego typ (np. degree) oraz nazwa np. (dyplom ukończenia
           studiow)
@@ -396,12 +420,6 @@ export const VcReceiptFlow = () => {
             <p> {ethrHolderDID}</p>
           </Typography>
           <br/>
-          <Typography variant="button" component="h2" gutterBottom>
-            IBE Holdera:
-          </Typography>
-          <Typography variant="subtitle1" component="h2" gutterBottom>
-            <pre>  {holderSetup} </pre>
-          </Typography>
         </Grid>
       </Container>
     )
@@ -417,7 +435,13 @@ export const VcReceiptFlow = () => {
           <pre>{JSON.stringify(receiptSchema, 2, " ")}</pre>
         </Typography>
         <Typography variant="button" component="h2" gutterBottom>
-          Zaszyfrowany paragon
+          IBE Holdera utworzone w oparciu o podany email:
+        </Typography>
+        <Typography variant="subtitle1" component="h2" gutterBottom>
+          <pre>  {holderSetup} </pre>
+        </Typography>
+        <Typography variant="button" component="h2" gutterBottom>
+          Zaszyfrowany paragon przy użyciu IBE
         </Typography>
         <Typography variant="subtitle1" cstyle={{overflowWrap: "break-all"}}>
 
@@ -435,14 +459,17 @@ export const VcReceiptFlow = () => {
       case 1:
         return vcHolderStep();
       case 2:
-        return vcIssueStep();
-      case 3:
         return vcReceiptStep();
+      case 3:
+        return vcIssueStep();
       case 4:
         return (
           <Container>
             <button onClick={createVp}> Wygeneruj weryfikowalną prezentacje</button>
+            <Typography variant="subtitle1" style={{wordWrap: "break-word"}}>
+
             <p>{vp}</p>
+            </Typography>
           </Container>
         )
       case 5:
