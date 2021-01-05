@@ -147,8 +147,9 @@ export const VcReceiptFlow = () => {
       credentialSubject: {
         type: vcType,
         name: vcName,
-        digitalReceiptAgree: checked
-
+        statement: "Wyrażam zgodę nas otrzymywanie paragonu na powiązany identyfikator",
+        digitalReceiptAgree: checked,
+        consentDay: Math.floor(Date.now() / 1000)
       }
     }
   };
@@ -299,31 +300,31 @@ export const VcReceiptFlow = () => {
   const classes = useStyles();
 
   function getSteps() {
-    return ['Utwórz portfel Issuera', 'Utwórz DID Holdera', 'Zaszyfruj paragon', 'Wygeneruj weryfikowalne poświadczenie',
-      'Wygeneruj weryfikowalną prezentacje', 'Zweryfikuj poprawność'];
+    return ['Inicjuj konto dostawcy uwierzytelnienia', 'Utworzenie tożsamości klienta/okaziciela', 'Zaszyfruj paragon', 'Weryfikowalne poświadczenie',
+      'Weryfikowalna prezentacja', 'Zweryfikuj poprawność'];
   }
 
   const issuerStep = () => {
     return (
       <Container>
-        <button onClick={createIssuerAccount}> Utwórz portfel Issuera</button>
+        <button onClick={createIssuerAccount}> Inicjuj konto dostawcy uwierzytelnienia</button>
         <br/>
         <br/>
         <Typography variant="button" component="h2" gutterBottom>
-          Adres Issuera:
+          Tożsamośc dostawcy uwierzytelnienia:
         </Typography>
         <Typography variant="subtitle1" component="h2" gutterBottom>
           <p> {ethrIssuerAddr}</p>
         </Typography>
         <Typography variant="button" component="h2" gutterBottom>
-          Klucz prywatny Issuera:
+          Klucz prywatny dostawcy uwierzytelnienia:
         </Typography>
         <Typography variant="subtitle1" component="h2" gutterBottom>
           <p> {ethrIssuerKey}</p>
         </Typography>
 
         <Typography variant="button" component="h2" gutterBottom>
-          IBE Issuera:
+          Inicjalizacja kryptosystemu identyfikatorowego dla dostawcy tożsamości:
         </Typography>
         <Typography variant="subtitle1" component="h2" gutterBottom>
           <pre>  {issuerSetup} </pre>
@@ -337,20 +338,8 @@ export const VcReceiptFlow = () => {
   const vcIssueStep = () => {
     return (
       <Container>
-        <Checkbox
-          checked={checked}
-          onChange={handleCheckboxChange}
-          color="primary"
-          inputProps={{ 'aria-label': 'primary checkbox' }}
-        />
-        Wyrażam zgodę nas otrzymywanie paragonu na powiązany identyfikator DID:
-        <p>{ethrHolderDID}</p>
-        <br/>
-
-
         <Typography variant="body1" gutterBottom>
-          Podaj parametry weryfikowalnego poświadczenia: <br/> jego typ (np. degree) oraz nazwa np. (dyplom ukończenia
-          studiow)
+          Podaj parametry weryfikowalnego poświadczenia:
         </Typography>
         <br/>
         <Grid direction="column">
@@ -370,7 +359,7 @@ export const VcReceiptFlow = () => {
           <br/>
           <br/>
 
-          <button onClick={issueVCS}>Wygeneruj weryfikowalne poświadczenie</button>
+          <button onClick={issueVCS}>Uwierzytelnienie klienta/okaziciela do identyfikatora oraz wyrażenie jego zgody do otrzymywania paragonów na identyfikator</button>
 
           <Typography variant="button" component="h2" gutterBottom>
             Weryfikowalne poświadczenie:
@@ -398,8 +387,17 @@ export const VcReceiptFlow = () => {
   const vcHolderStep = () => {
     return (
       <Container>
+        <Checkbox
+          checked={checked}
+          onChange={handleCheckboxChange}
+          color="primary"
+          inputProps={{ 'aria-label': 'primary checkbox' }}
+        />
+        Wyrażam zgodę na otrzymywanie paragonu na powiązany identyfikator
+        <br/>
         <Grid>
-        <Typography variant="button" component="h2" gutterBottom>
+
+          <Typography variant="button" component="h2" gutterBottom>
           Podaj email holdera
         </Typography>
         </Grid>
@@ -412,13 +410,20 @@ export const VcReceiptFlow = () => {
             onChange={e => setHolderEmail(e.target.value)}
           />
           <br/>
-          <button onClick={createHoldersAccount}>Utwórz DID holdera</button>
+          <button onClick={createHoldersAccount}>Utworzenie tożsamości klienta/okaziciela</button>
           <br/>
+
           <Typography variant="button" component="h2" gutterBottom>
-            DID Holdera:
+            Tożsamość klienta/okaziciela na ethereum:
           </Typography>
           <Typography variant="subtitle1" component="h2" gutterBottom>
             <p> {ethrHolderDID}</p>
+          </Typography>
+          <Typography variant="button" component="h2" gutterBottom>
+            Inicjalizacja kryptosystemu identyfikatorowego dla klienta/okaziciela
+          </Typography>
+          <Typography variant="subtitle1" component="h2" gutterBottom>
+            <pre>  {holderSetup} </pre>
           </Typography>
           <br/>
         </Grid>
@@ -432,20 +437,12 @@ export const VcReceiptFlow = () => {
           Paragon - schemat
         </Typography>
         <Typography variant="subtitle1" cstyle={{overflowWrap: "break-all"}}>
-
           <pre>{JSON.stringify(receiptSchema, 2, " ")}</pre>
         </Typography>
         <Typography variant="button" component="h2" gutterBottom>
-          IBE Holdera utworzone w oparciu o podany email:
-        </Typography>
-        <Typography variant="subtitle1" component="h2" gutterBottom>
-          <pre>  {holderSetup} </pre>
-        </Typography>
-        <Typography variant="button" component="h2" gutterBottom>
-          Zaszyfrowany paragon przy użyciu IBE
+          Paragon zaszyfrowany z wykorzystaniem identyfikatora
         </Typography>
         <Typography variant="subtitle1" cstyle={{overflowWrap: "break-all"}}>
-
           <pre>{receiptEncrypted}</pre>
         </Typography>
         <br/>
@@ -466,7 +463,7 @@ export const VcReceiptFlow = () => {
       case 4:
         return (
           <Container>
-            <button onClick={createVp}> Wygeneruj weryfikowalną prezentacje</button>
+            <button onClick={createVp}> Wygeneruj weryfikowalną prezentacje poświadczenia</button>
             <Typography variant="subtitle1" style={{wordWrap: "break-word"}}>
 
             <p>{vp}</p>
