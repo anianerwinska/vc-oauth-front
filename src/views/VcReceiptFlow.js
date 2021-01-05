@@ -34,6 +34,8 @@ export const VcReceiptFlow = () => {
   const [ethrIssuerKey, setEthrIssuerKey] = useState("");
   const [vc, setVc] = useState("Brak weryfikowalnych poświadczeń");
   const [vp, setVp] = useState("Brak weryfikowalnych prezentacji");
+  const [decryptedVp, setDecryptedVp] = useState("");
+  const [decryptedVc, setDecryptedVc] = useState("");
 
   const [vcCorrect, setVcCorrect] = useState(false);
   const [issuerSetup, setIssuerSetup] = useState("");
@@ -43,6 +45,7 @@ export const VcReceiptFlow = () => {
   const [holderEmail, setHolderEmail] = useState("");
   const [receiptEncrypted, setReceiptEncrypted] = useState("");
   const [checked, setChecked] = useState(false);
+  const [extractHolder, setExtractHolder] = useState("");
 
   const [vcType, setVcType] = useState("");
   const [vcName, setVcName] = useState("");
@@ -179,6 +182,10 @@ export const VcReceiptFlow = () => {
     const setupResult = instance.setup(CryptID.default.SecurityLevel.LOW);
     setHolderSetup(JSON.stringify(setupResult, 2, " "));
     setHolderInstance(instance);
+    const holderSetupToJson = JSON.parse(JSON.stringify(setupResult, 2, " "));
+    const extractResult = instance.extract(holderSetupToJson.publicParameters, holderSetupToJson.masterSecret, holderEmail);
+    setExtractHolder(JSON.stringify(extractResult, 2, " "))
+
     return instance.encrypt(setupResult.publicParameters, holderEmail, JSON.stringify(receiptSchema));
   };
 
@@ -207,16 +214,23 @@ export const VcReceiptFlow = () => {
     setVp(vpJwt)
   };
 
+  const decryptJWTVp = () => {
+    const decryptedJWT = JSON.parse(atob(vp.split('.')[1]));
+    setDecryptedVp(JSON.stringify(decryptedJWT, 2, " "))
+  }
+
+  const decryptJWTVc = () => {
+    const decryptedJWT = JSON.parse(atob(vc.split('.')[1]));
+    setDecryptedVc(JSON.stringify(decryptedJWT, 2, " "))
+  }
+
   const verifyVC = async () => {
     try {
       const verifiedVC = await verifyCredential(vc, resolver);
       const holderSetupToJson = JSON.parse(holderSetup);
       const receiptEncryptedToJson = JSON.parse(receiptEncrypted);
-      console.log(holderSetupToJson)
       const extractResult = holderInstance.extract(holderSetupToJson.publicParameters, holderSetupToJson.masterSecret, holderEmail);
-      console.log(extractResult)
       const decryptResult = holderInstance.decrypt(holderSetupToJson.publicParameters, extractResult.privateKey, receiptEncryptedToJson.ciphertext);
-      console.log(decryptResult)
       if (vcPayload.vc.credentialSubject.digitalReceiptAgree === true && decryptResult.success) {
         setVcCorrect(true);
         const asJSON = JSON.parse(decryptResult.plaintext)
@@ -232,7 +246,6 @@ export const VcReceiptFlow = () => {
 
 
     } catch (e) {
-      console.log(e)
       alert("Wystąpił błąd, poświadczenie niepoprawne");
     }
   };
@@ -338,6 +351,26 @@ export const VcReceiptFlow = () => {
   const vcIssueStep = () => {
     return (
       <Container>
+        <Checkbox
+          checked={checked}
+          onChange={handleCheckboxChange}
+          color="primary"
+          inputProps={{ 'aria-label': 'primary checkbox' }}
+        />
+        Wyrażam zgodę na otrzymywanie paragonu na powiązany identyfikator DID:
+        <p>{ethrHolderDID}</p>
+        {checked && (
+          <Container>
+            <Typography variant="button" component="h2" gutterBottom>
+              Generacja klucza prywatnego klienta/okaziciela
+            </Typography>
+        <Typography variant="subtitle1" >
+          <pre>{extractHolder}</pre>
+        </Typography>
+          </Container>
+        )
+        }
+        <br/>
         <Typography variant="body1" gutterBottom>
           Podaj parametry weryfikowalnego poświadczenia:
         </Typography>
@@ -375,6 +408,8 @@ export const VcReceiptFlow = () => {
           <Typography variant="subtitle1" style={{wordWrap: "break-word"}}>
             {vc}
           </Typography>
+          <button onClick={decryptJWTVc}> Odszyfruj weryfikowalne poświadczenia</button>
+          <pre>{decryptedVc}</pre>
           <br/>
           <br/>
 
@@ -387,14 +422,6 @@ export const VcReceiptFlow = () => {
   const vcHolderStep = () => {
     return (
       <Container>
-        <Checkbox
-          checked={checked}
-          onChange={handleCheckboxChange}
-          color="primary"
-          inputProps={{ 'aria-label': 'primary checkbox' }}
-        />
-        Wyrażam zgodę na otrzymywanie paragonu na powiązany identyfikator
-        <br/>
         <Grid>
 
           <Typography variant="button" component="h2" gutterBottom>
@@ -465,11 +492,13 @@ export const VcReceiptFlow = () => {
           <Container>
             <button onClick={createVp}> Wygeneruj weryfikowalną prezentacje poświadczenia</button>
             <Typography variant="subtitle1" style={{wordWrap: "break-word"}}>
-
             <p>{vp}</p>
             </Typography>
+            <button onClick={decryptJWTVp}> Odszyfruj weryfikowalną prezentacje poświadczenia</button>
+            <pre>{decryptedVp}</pre>
+
           </Container>
-        )
+        );
       case 5:
         return (
           <Container>
