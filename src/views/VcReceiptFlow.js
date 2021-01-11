@@ -169,13 +169,15 @@ export const VcReceiptFlow = () => {
     return ethrIssuerAddr
   };
 
-  const createHoldersAccount = async (password) => {
+  const createHoldersAccount = async () => {
     const account = await web3.eth.accounts.create();
     const did = 'did:ethr:' + account.address;
     setEthHolderDID(did);
+  };
+  const createCryptosystem = async () => {
     const result = await encryptReceipt();
     setReceiptEncrypted(JSON.stringify(result, 2, " "))
-  };
+  }
 
   const encryptReceipt = async () => {
     const instance = await CryptID.default.getInstance();
@@ -313,7 +315,7 @@ export const VcReceiptFlow = () => {
   const classes = useStyles();
 
   function getSteps() {
-    return ['Inicjuj konto dostawcy uwierzytelnienia', 'Utworzenie tożsamości klienta/okaziciela', 'Zaszyfruj paragon', 'Weryfikowalne poświadczenie',
+    return ['Inicjuj konto dostawcy uwierzytelnienia', 'Inicjacja kryptosystemu', 'Utworzenie tożsamości klienta/okaziciela', 'Zaszyfruj paragon', 'Weryfikowalne poświadczenie',
       'Weryfikowalna prezentacja', 'Zweryfikuj poprawność'];
   }
 
@@ -418,15 +420,14 @@ export const VcReceiptFlow = () => {
       </Container>
     )
   };
-
-  const vcHolderStep = () => {
+  const vcCryptosystemStep = () => {
     return (
       <Container>
         <Grid>
 
           <Typography variant="button" component="h2" gutterBottom>
-          Podaj email holdera
-        </Typography>
+            Podaj adres email dla identyfikatora
+          </Typography>
         </Grid>
 
         <Grid direction="column">
@@ -437,15 +438,9 @@ export const VcReceiptFlow = () => {
             onChange={e => setHolderEmail(e.target.value)}
           />
           <br/>
-          <button onClick={createHoldersAccount}>Utworzenie tożsamości klienta/okaziciela</button>
+          <button onClick={createCryptosystem}>Inicjalizacja kryptosystemu</button>
           <br/>
 
-          <Typography variant="button" component="h2" gutterBottom>
-            Tożsamość klienta/okaziciela na ethereum:
-          </Typography>
-          <Typography variant="subtitle1" component="h2" gutterBottom>
-            <p> {ethrHolderDID}</p>
-          </Typography>
           <Typography variant="button" component="h2" gutterBottom>
             Inicjalizacja kryptosystemu identyfikatorowego dla klienta/okaziciela
           </Typography>
@@ -455,8 +450,27 @@ export const VcReceiptFlow = () => {
           <br/>
         </Grid>
       </Container>
-    )
+  )
   }
+
+  const vcHolderStep = () => {
+    return (
+      <Container>
+        <Grid>
+
+          <button onClick={createHoldersAccount}>Utworzenie adresu Ethereum klienta/okaziciela</button>
+          <br/>
+          <Typography variant="button" component="h2" gutterBottom>
+            Identyfikator klienta/okaziciela na ethereum:
+          </Typography>
+          <Typography variant="subtitle1" component="h2" gutterBottom>
+            <p> {ethrHolderDID}</p>
+          </Typography>
+        </Grid>
+      </Container>
+    )
+  };
+
   const vcReceiptStep = () => {
     return (
       <Container>
@@ -482,12 +496,14 @@ export const VcReceiptFlow = () => {
       case 0:
         return issuerStep();
       case 1:
-        return vcHolderStep();
+        return vcCryptosystemStep();
       case 2:
-        return vcReceiptStep();
+        return vcHolderStep();
       case 3:
-        return vcIssueStep();
+        return vcReceiptStep();
       case 4:
+        return vcIssueStep();
+      case 5:
         return (
           <Container>
             <button onClick={createVp}> Wygeneruj weryfikowalną prezentacje poświadczenia</button>
@@ -499,7 +515,7 @@ export const VcReceiptFlow = () => {
 
           </Container>
         );
-      case 5:
+      case 6:
         return (
           <Container>
             <button onClick={verifyVC}> Zweryfikuj poprawność</button>
